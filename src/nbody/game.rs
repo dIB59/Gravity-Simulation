@@ -1,4 +1,6 @@
-use graviplex::{include_wgsl, Camera2D, GameLoop, GpuContext, InputState, RenderPipeline, Vertex};
+use graviplex::{
+    Camera2D, CirclePipeline, GameLoop, GpuContext, InputState, PhysicsInstance, Vertex,
+};
 
 use crate::nbody::GpuEngine;
 
@@ -6,7 +8,7 @@ use crate::nbody::GpuEngine;
 pub struct NBodyGame {
     pub particle_count: u32,
     pub gpu_engine: Option<GpuEngine>,
-    pub pipeline: Option<RenderPipeline>,
+    pub pipeline: Option<CirclePipeline>,
     pub gravity: f32,
     pub theta: f32,
     pub show_quadtree: bool,
@@ -33,13 +35,11 @@ impl GameLoop for NBodyGame {
         self.gpu_engine = Some(engine);
 
         let format = gpu.config.as_ref().unwrap().format;
-        self.pipeline = Some(RenderPipeline::new(
-            "Circle Shader",
-            include_wgsl!("../../graviplex/src/shaders/circle_shader.wgsl"),
+        self.pipeline = Some(CirclePipeline::with_instance_layout(
             &gpu.device,
             format,
-            // Camera doesn't matter here for layout
             &Camera2D::new([0.0, 0.0], 1.0, [1.0, 1.0]),
+            PhysicsInstance::desc(),
         ));
     }
 
@@ -59,13 +59,14 @@ impl GameLoop for NBodyGame {
 
             pipeline.camera_gpu_data().update(&gpu.queue, camera);
 
-            pipeline.render(
+            pipeline.render_with_external_buffer(
                 &gpu.device,
                 &gpu.queue,
                 view,
+                camera,
                 &vertices,
                 self.particle_count,
-                Some(&engine.particle_buffer),
+                &engine.particle_buffer,
             );
         }
     }

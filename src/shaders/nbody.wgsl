@@ -52,12 +52,12 @@ fn init_particles(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let radius = rand_num_upto_u8(seed + 10000u);
     let mass = radius * radius;
     // Generate color from radius
-    var color = 0x00BFFFu; // Deep Sky Blue
+    var color = 0xFF00BFFFu; // Deep Sky Blue (with Alpha FF)
     if radius > 49u {
-        color = 0x4169E1u; // Royal Blue
+        color = 0xFF4169E1u; // Royal Blue (with Alpha FF)
     }
     if radius > 200u {
-        color = 0x00008Bu; // Dark Blue
+        color = 0xFF00008Bu; // Dark Blue (with Alpha FF)
     }
 
 

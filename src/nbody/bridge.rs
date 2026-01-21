@@ -1,5 +1,5 @@
 use crate::nbody::Simulation;
-use graviplex::renderer::Instance;
+use graviplex::PhysicsInstance;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
@@ -85,7 +85,7 @@ impl Default for QuadCell {
 
 pub struct SimulationBridge {
     tx: Sender<SimulationCommand>,
-    buffer: Arc<TripleBuffer<Vec<Instance>>>,
+    buffer: Arc<TripleBuffer<Vec<PhysicsInstance>>>,
     quad_cells_buffer: Arc<TripleBuffer<Vec<QuadCell>>>,
     tps: Arc<RwLock<f32>>,
     current_body_count: Arc<RwLock<usize>>,
@@ -129,7 +129,7 @@ impl SimulationBridge {
         }
     }
 
-    pub fn get_instances(&self) -> Arc<RwLock<Vec<Instance>>> {
+    pub fn get_instances(&self) -> Arc<RwLock<Vec<PhysicsInstance>>> {
         self.buffer.fetch()
     }
 
