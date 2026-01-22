@@ -1,4 +1,5 @@
 use graviplex::{
+    renderer::{render_state, RenderState},
     Camera2D, CirclePipeline, DrawContext, GameLoop, GpuContext, InputState, PhysicsInstance,
 };
 
@@ -51,11 +52,13 @@ impl GameLoop for NBodyGame {
 
     fn render(&mut self, draw: &mut DrawContext) {
         if let (Some(engine), Some(pipeline)) = (&self.gpu_engine, &self.pipeline) {
+            let render_state = RenderState {
+                gpu: &draw.gpu,
+                view: draw.view,
+                camera: draw.camera,
+            };
             pipeline.render_with_external_buffer(
-                &draw.gpu.device,
-                &draw.gpu.queue,
-                draw.view,
-                draw.camera,
+                &render_state,
                 self.particle_count,
                 &engine.particle_buffer,
             );
