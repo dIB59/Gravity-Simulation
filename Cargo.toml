@@ -1,10 +1,10 @@
 [package]
 name = "graviplex-sim"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-graviplex = { path = "../Graviplex" }
+graviplex = { path = "../Graviplex", features = ["gui", "physics"] }
 bytemuck = "1.22.0"
 wgpu = "26.0.1"
 winit = "0.30.7"

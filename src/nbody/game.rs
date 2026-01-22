@@ -1,7 +1,6 @@
-use graviplex::{
-    renderer::{render_state, RenderState},
-    Camera2D, CirclePipeline, DrawContext, GameLoop, GpuContext, InputState, PhysicsInstance,
-};
+use graviplex::prelude::*;
+use graviplex::advanced::{CirclePipeline, RenderState};
+use graviplex::physics::PhysicsInstance;
 
 use crate::nbody::GpuEngine;
 
@@ -30,35 +29,31 @@ impl NBodyGame {
 }
 
 impl GameLoop for NBodyGame {
-    fn init(&mut self, gpu: &GpuContext) {
-        let engine = GpuEngine::new(&gpu.device, &gpu.queue, self.particle_count);
-        engine.init(&gpu.queue);
+    fn init(&mut self, gfx: &Graphics) {
+        let engine = GpuEngine::new(&gfx.device, &gfx.queue, self.particle_count);
+        engine.init(&gfx.queue);
         self.gpu_engine = Some(engine);
 
-        let format = gpu.config.as_ref().unwrap().format;
+        let format = gfx.config.as_ref().unwrap().format;
         self.pipeline = Some(CirclePipeline::with_instance_layout(
-            &gpu.device,
+            &gfx.device,
             format,
             &Camera2D::new([0.0, 0.0], 1.0, [1.0, 1.0]),
             PhysicsInstance::desc(),
         ));
     }
 
-    fn update(&mut self, dt: f32, gpu: &GpuContext) {
+    fn update(&mut self, time: &Time, gfx: &Graphics) {
         if let Some(engine) = &self.gpu_engine {
-            engine.update(&gpu.device, &gpu.queue, dt, self.gravity, self.theta);
+            engine.update(&gfx.device, &gfx.queue, time.delta(), self.gravity, self.theta);
         }
     }
 
     fn render(&mut self, draw: &mut DrawContext) {
         if let (Some(engine), Some(pipeline)) = (&self.gpu_engine, &self.pipeline) {
-            let render_state = RenderState {
-                gpu: &draw.gpu,
-                view: draw.view,
-                camera: draw.camera,
-            };
+            let state = draw.state();
             pipeline.render_with_external_buffer(
-                &render_state,
+                &state,
                 self.particle_count,
                 &engine.particle_buffer,
             );

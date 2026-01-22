@@ -1,5 +1,5 @@
 use super::body::Body;
-
+use graviplex::physics::PhysicsInstance;
 /// SimulationState handles the data layout for the physics engine.
 /// It uses a "True SoA" (Structure of Arrays) approach where every primitive component
 /// stays in its own contiguous vector. This is optimal for CPU SIMD (AVX/SSE)
@@ -100,11 +100,11 @@ impl SimulationState {
 
     /// Optimized conversion direct to render instances.
     /// Converts f64 physics ground-truth to f32 for the GPU.
-    pub fn to_instances(&self) -> Vec<graviplex::PhysicsInstance> {
+    pub fn to_instances(&self) -> Vec<PhysicsInstance> {
         use rayon::prelude::*;
         (0..self.len())
             .into_par_iter()
-            .map(|i| graviplex::PhysicsInstance {
+            .map(|i| PhysicsInstance {
                 position: [self.px[i] as f32, self.py[i] as f32],
                 radius: self.radii[i] as f32,
                 color: self.colors[i],
