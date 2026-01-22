@@ -1,5 +1,5 @@
 use graviplex::{
-    Camera2D, CirclePipeline, GameLoop, GpuContext, InputState, PhysicsInstance, Vertex,
+    Camera2D, CirclePipeline, DrawContext, GameLoop, GpuContext, InputState, PhysicsInstance,
 };
 
 use crate::nbody::GpuEngine;
@@ -49,22 +49,13 @@ impl GameLoop for NBodyGame {
         }
     }
 
-    fn render(&mut self, gpu: &GpuContext, view: &wgpu::TextureView, camera: &Camera2D) {
+    fn render(&mut self, draw: &mut DrawContext) {
         if let (Some(engine), Some(pipeline)) = (&self.gpu_engine, &self.pipeline) {
-            let vertices = vec![
-                Vertex { pos: [0.0, 5.0] },
-                Vertex { pos: [4.33, -2.5] },
-                Vertex { pos: [-4.33, -2.5] },
-            ];
-
-            pipeline.camera_gpu_data().update(&gpu.queue, camera);
-
             pipeline.render_with_external_buffer(
-                &gpu.device,
-                &gpu.queue,
-                view,
-                camera,
-                &vertices,
+                &draw.gpu.device,
+                &draw.gpu.queue,
+                draw.view,
+                draw.camera,
                 self.particle_count,
                 &engine.particle_buffer,
             );
