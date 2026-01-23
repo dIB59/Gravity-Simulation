@@ -1,6 +1,6 @@
-use graviplex::prelude::*;
-use graviplex::advanced::{CirclePipeline, RenderState};
+use graviplex::advanced::CirclePipeline;
 use graviplex::physics::PhysicsInstance;
+use graviplex::prelude::*;
 
 use crate::nbody::GpuEngine;
 
@@ -45,7 +45,13 @@ impl GameLoop for NBodyGame {
 
     fn update(&mut self, time: &Time, gfx: &Graphics) {
         if let Some(engine) = &self.gpu_engine {
-            engine.update(&gfx.device, &gfx.queue, time.delta(), self.gravity, self.theta);
+            engine.update(
+                &gfx.device,
+                &gfx.queue,
+                time.delta(),
+                self.gravity,
+                self.theta,
+            );
         }
     }
 

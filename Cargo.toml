@@ -4,7 +4,7 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-graviplex = { path = "../Graviplex", features = ["gui", "physics"] }
+graviplex = { git = "https://github.com/dib59/Graviplex.git", features = ["gui", "physics"], rev = "77bd2c23884ca08830f0fb396942e8a7faac8b1d" }
 bytemuck = "1.22.0"
 wgpu = "26.0.1"
 winit = "0.30.7"
