@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graviplex N-Body Simulation</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    color: #ddd;
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+  #status {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 4px;
+    font-size: 13px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #graviplex-canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+</style>
+</head>
+<body>
+<div id="status">Loading…</div>
+<canvas id="graviplex-canvas" width="1280" height="720"></canvas>
+
+<script type="module">
+  const status = document.getElementById('status');
+  try {
+    const { default: init } = await import('./pkg/graviplex_sim.js');
+    status.textContent = 'Initializing WASM…';
+    await init();
+    status.textContent = 'Running.';
+    setTimeout(() => { status.style.opacity = '0.4'; }, 2000);
+  } catch (e) {
+    status.textContent = 'Failed to load: ' + (e?.message ?? e);
+    console.error(e);
+  }
+</script>
+</body>
+</html>

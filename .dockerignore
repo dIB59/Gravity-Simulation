@@ -1,0 +1,15 @@
+target/
+src/
+benches/
+.git/
+.gitignore
+Cargo.toml
+Cargo.lock
+rust-toolchain.toml
+.cargo/
+README.md
+book.pdf
+*.md
+.dockerignore
+Dockerfile
+.github/
