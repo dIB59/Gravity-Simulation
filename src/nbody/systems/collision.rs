@@ -54,12 +54,26 @@ impl SimulationSystem for QuadtreeCollision {
         _context: &SimulationContext,
         quadtree: &Quadtree,
     ) {
-        use rayon::prelude::*;
-
+        use crate::par::*;
         let len = state.len();
+        #[cfg(feature = "parallel")]
         let mut pairs: Vec<(usize, usize)> = (0..len)
-            .into_par_iter()
+            .into_maybe_par_iter()
             .flat_map_iter(|i| {
+                let mut neighbours = Vec::new();
+                let pos_i = [state.px[i], state.py[i]];
+                let radius_i = state.radii[i];
+                quadtree.search_radius(pos_i, radius_i * 8.0, &mut neighbours);
+
+                neighbours
+                    .into_iter()
+                    .filter(move |&j| i < j)
+                    .map(move |j| (i, j))
+            })
+            .collect();
+        #[cfg(not(feature = "parallel"))]
+        let mut pairs: Vec<(usize, usize)> = (0..len)
+            .flat_map(|i| {
                 let mut neighbours = Vec::new();
                 let pos_i = [state.px[i], state.py[i]];
                 let radius_i = state.radii[i];
@@ -107,12 +121,27 @@ impl SimulationSystem for KdTreeCollision {
 
         self.tree.build(&mut points);
 
-        use rayon::prelude::*;
-
+        use crate::par::*;
         let len = state.len();
+        #[cfg(feature = "parallel")]
         let mut pairs: Vec<(usize, usize)> = (0..len)
-            .into_par_iter()
+            .into_maybe_par_iter()
             .flat_map_iter(|i| {
+                let mut neighbours = Vec::new();
+                let pos_i = [state.px[i], state.py[i]];
+                let radius_i = state.radii[i];
+                self.tree
+                    .search_radius(pos_i, radius_i * 8.0, &mut neighbours);
+
+                neighbours
+                    .into_iter()
+                    .filter(move |&j| i < j)
+                    .map(move |j| (i, j))
+            })
+            .collect();
+        #[cfg(not(feature = "parallel"))]
+        let mut pairs: Vec<(usize, usize)> = (0..len)
+            .flat_map(|i| {
                 let mut neighbours = Vec::new();
                 let pos_i = [state.px[i], state.py[i]];
                 let radius_i = state.radii[i];

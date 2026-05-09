@@ -187,10 +187,9 @@ impl Simulation {
 
     pub fn apply_interaction(&mut self, mouse_pos: [f64; 2], radius: f64, strength: f64) {
         let radius_sq = radius * radius;
-        use rayon::prelude::*;
-
+        use crate::par::*;
         let len = self.state.len();
-        (0..len).into_par_iter().for_each(|i| {
+        (0..len).into_maybe_par_iter().for_each(|i| {
             // Safety: We ensure all vectors have the same length in SimulationState
             unsafe {
                 let px = self.state.px.as_ptr();

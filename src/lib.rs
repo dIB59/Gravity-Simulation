@@ -3,5 +3,6 @@
 //! A GPU-accelerated Barnes-Hut n-body simulation built on graviplex-engine.
 
 pub mod nbody;
+pub mod par;
 
 pub use nbody::*;

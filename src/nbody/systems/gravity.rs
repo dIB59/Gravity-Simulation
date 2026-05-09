@@ -68,11 +68,11 @@ impl SimulationSystem for BarnesHutGravityStrategy {
         context: &SimulationContext,
         quadtree: &Quadtree,
     ) {
-        use rayon::prelude::*;
+        use crate::par::*;
         let g = context.gravity_constant as f64;
 
         let results: Vec<[f64; 2]> = (0..state.len())
-            .into_par_iter()
+            .into_maybe_par_iter()
             .map(|i| {
                 let pos = [state.px[i], state.py[i]];
                 quadtree.acc(pos, g)

@@ -101,9 +101,9 @@ impl SimulationState {
     /// Optimized conversion direct to render instances.
     /// Converts f64 physics ground-truth to f32 for the GPU.
     pub fn to_instances(&self) -> Vec<PhysicsInstance> {
-        use rayon::prelude::*;
+        use crate::par::*;
         (0..self.len())
-            .into_par_iter()
+            .into_maybe_par_iter()
             .map(|i| PhysicsInstance {
                 position: [self.px[i] as f32, self.py[i] as f32],
                 radius: self.radii[i] as f32,

@@ -1,5 +1,4 @@
-use rayon::prelude::*;
-
+use crate::par::*;
 #[derive(Clone, Copy, Debug)]
 pub struct Quad {
     pub center: [f64; 2],
@@ -16,28 +15,45 @@ impl Quad {
             };
         }
 
-        let (min, max) = px
-            .par_iter()
-            .zip(py.par_iter())
-            .fold(
-                || ([f64::MAX, f64::MAX], [f64::MIN, f64::MIN]),
-                |(mut min, mut max), (&x, &y)| {
-                    min[0] = min[0].min(x);
-                    min[1] = min[1].min(y);
-                    max[0] = max[0].max(x);
-                    max[1] = max[1].max(y);
-                    (min, max)
-                },
-            )
-            .reduce(
-                || ([f64::MAX, f64::MAX], [f64::MIN, f64::MIN]),
-                |(min1, max1), (min2, max2)| {
-                    (
-                        [min1[0].min(min2[0]), min1[1].min(min2[1])],
-                        [max1[0].max(max2[0]), max1[1].max(max2[1])],
+        let (min, max) = {
+            #[cfg(feature = "parallel")]
+            {
+                px.maybe_par_iter()
+                    .zip(py.maybe_par_iter())
+                    .fold(
+                        || ([f64::MAX, f64::MAX], [f64::MIN, f64::MIN]),
+                        |(mut min, mut max), (&x, &y)| {
+                            min[0] = min[0].min(x);
+                            min[1] = min[1].min(y);
+                            max[0] = max[0].max(x);
+                            max[1] = max[1].max(y);
+                            (min, max)
+                        },
                     )
-                },
-            );
+                    .reduce(
+                        || ([f64::MAX, f64::MAX], [f64::MIN, f64::MIN]),
+                        |(min1, max1), (min2, max2)| {
+                            (
+                                [min1[0].min(min2[0]), min1[1].min(min2[1])],
+                                [max1[0].max(max2[0]), max1[1].max(max2[1])],
+                            )
+                        },
+                    )
+            }
+            #[cfg(not(feature = "parallel"))]
+            {
+                px.iter().zip(py.iter()).fold(
+                    ([f64::MAX, f64::MAX], [f64::MIN, f64::MIN]),
+                    |(mut min, mut max), (&x, &y)| {
+                        min[0] = min[0].min(x);
+                        min[1] = min[1].min(y);
+                        max[0] = max[0].max(x);
+                        max[1] = max[1].max(y);
+                        (min, max)
+                    },
+                )
+            }
+        };
 
         let center = [(min[0] + max[0]) * 0.5, (min[1] + max[1]) * 0.5];
         let size = ((max[0] - min[0]).max(max[1] - min[1]) * 1.1).max(Self::MIN_SIZE);
@@ -175,14 +191,17 @@ impl Quadtree {
         }
 
         let mut bodies: Vec<_> = (0..len)
-            .into_par_iter()
+            .into_maybe_par_iter()
             .map(|i| {
                 let pos = [px[i], py[i]];
                 (pos, masses[i], get_morton_code(pos, &quad), i)
             })
             .collect();
 
+        #[cfg(feature = "parallel")]
         bodies.par_sort_by_key(|b| b.2);
+        #[cfg(not(feature = "parallel"))]
+        bodies.sort_by_key(|b| b.2);
 
         self.body_indices = bodies.iter().map(|b| b.3).collect();
 

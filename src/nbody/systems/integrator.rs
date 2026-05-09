@@ -15,11 +15,11 @@ impl SimulationSystem for VerletIntegratorStage1 {
         context: &SimulationContext,
         _quadtree: &Quadtree,
     ) {
-        use rayon::prelude::*;
+        use crate::par::*;
         let dt = context.dt as f64;
 
         let len = state.len();
-        (0..len).into_par_iter().for_each(|i| {
+        (0..len).into_maybe_par_iter().for_each(|i| {
             // Safety: We ensure all vectors have the same length in SimulationState
             unsafe {
                 let px = state.px.as_ptr() as *mut f64;
@@ -49,11 +49,11 @@ impl SimulationSystem for VerletIntegratorStage2 {
         context: &SimulationContext,
         _quadtree: &Quadtree,
     ) {
-        use rayon::prelude::*;
+        use crate::par::*;
         let dt = context.dt as f64;
 
         let len = state.len();
-        (0..len).into_par_iter().for_each(|i| unsafe {
+        (0..len).into_maybe_par_iter().for_each(|i| unsafe {
             let vx = state.vx.as_ptr() as *mut f64;
             let vy = state.vy.as_ptr() as *mut f64;
             let ax = state.ax.as_ptr();
@@ -77,11 +77,11 @@ impl SimulationSystem for EulerIntegrator {
         context: &SimulationContext,
         _quadtree: &Quadtree,
     ) {
-        use rayon::prelude::*;
+        use crate::par::*;
         let dt = context.dt as f64;
 
         let len = state.len();
-        (0..len).into_par_iter().for_each(|i| {
+        (0..len).into_maybe_par_iter().for_each(|i| {
             // Safety: We ensure all vectors have the same length in SimulationState
             unsafe {
                 let px = state.px.as_ptr() as *mut f64;
