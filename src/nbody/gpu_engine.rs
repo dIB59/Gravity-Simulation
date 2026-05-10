@@ -963,8 +963,15 @@ impl GpuEngine {
 
         // ================================================================
         // Pass 9: Tree-based collision detection O(N × W)
-        // Uses Morton code spatial locality for efficient collision detection
-        // ================================================================
+        // Uses Morton code spatial locality for efficient collision detection.
+        //
+        // Disabled on wasm32: this pass has an inherent read-write race —
+        // each invocation reads particles[j] for nearby j while other
+        // invocations write particles[j]. Native (Vulkan/Metal) tolerates it;
+        // WebGPU's stricter race-condition exposure produces visibly
+        // inconsistent / partially-updated state. We re-enable this once the
+        // pass is rewritten to use a separate scratch buffer for output.
+        #[cfg(not(target_arch = "wasm32"))]
         {
             let mut encoder = device.create_command_encoder(&CommandEncoderDescriptor {
                 label: Some("Tree Collision Encoder"),
