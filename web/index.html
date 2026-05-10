@@ -25,11 +25,34 @@
     font-size: 13px;
     pointer-events: none;
     z-index: 10;
+    max-width: 480px;
+    line-height: 1.4;
   }
+  #status a { color: #6cf; }
   #graviplex-canvas {
     display: block;
     width: 100vw;
     height: 100vh;
+  }
+  #unsupported {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    z-index: 20;
+    background: #0a0a0a;
+  }
+  #unsupported h1 { font-size: 24px; margin-bottom: 12px; color: #fff; }
+  #unsupported p  { max-width: 540px; line-height: 1.55; opacity: 0.85; }
+  #unsupported code {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 90%;
   }
 </style>
 </head>
@@ -37,17 +60,48 @@
 <div id="status">Loading…</div>
 <canvas id="graviplex-canvas" width="1280" height="720"></canvas>
 
+<div id="unsupported">
+  <h1>WebGPU required</h1>
+  <p>
+    This simulation runs n-body physics on the GPU using WebGPU compute shaders.
+    Your browser doesn't expose WebGPU.
+  </p>
+  <p>
+    <strong>Try Chrome, Edge, or Safari 18+.</strong>
+    <br>
+    On Firefox, enable <code>dom.webgpu.enabled</code> in <code>about:config</code> and restart.
+  </p>
+  <p>
+    <a href="https://github.com/dIB59/Gravity-Simulation" target="_blank" rel="noopener">Source on GitHub</a>
+  </p>
+</div>
+
 <script type="module">
-  const status = document.getElementById('status');
-  try {
-    const { default: init } = await import('./pkg/graviplex_sim.js');
-    status.textContent = 'Initializing WASM…';
-    await init();
-    status.textContent = 'Running.';
-    setTimeout(() => { status.style.opacity = '0.4'; }, 2000);
-  } catch (e) {
-    status.textContent = 'Failed to load: ' + (e?.message ?? e);
-    console.error(e);
+  const status      = document.getElementById('status');
+  const unsupported = document.getElementById('unsupported');
+
+  // Pre-flight WebGPU check before loading the WASM. Avoids the Rust panic
+  // surface for the most common failure mode (browser without WebGPU).
+  if (!('gpu' in navigator)) {
+    status.style.display = 'none';
+    unsupported.style.display = 'flex';
+  } else {
+    try {
+      // Verify an adapter is actually obtainable (some browsers expose
+      // navigator.gpu but have no compatible adapter).
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) throw new Error('navigator.gpu.requestAdapter() returned null');
+
+      const { default: init } = await import('./pkg/graviplex_sim.js');
+      status.textContent = 'Initializing WASM…';
+      await init();
+      status.textContent = 'Running.';
+      setTimeout(() => { status.style.opacity = '0.4'; }, 2000);
+    } catch (e) {
+      status.style.display = 'none';
+      unsupported.style.display = 'flex';
+      console.error('WebGPU init failed:', e);
+    }
   }
 </script>
 </body>
