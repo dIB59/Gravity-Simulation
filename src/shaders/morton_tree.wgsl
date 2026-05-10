@@ -197,7 +197,7 @@ var<workgroup> local_morton: array<MortonEntry, 256>;
 
 /// Compare and swap two Morton entries based on sort direction
 fn compare_and_swap(a: ptr<function, MortonEntry>, b: ptr<function, MortonEntry>, ascending: bool) {
-    let should_swap = select((*a).key < (*b).key, (*a).key > (*b).key, ascending);
+    let should_swap = select(((*a).key < (*b).key), ((*a).key > (*b).key), ascending);
     if should_swap {
         let temp = *a;
         *a = *b;
@@ -248,7 +248,7 @@ fn bitonic_sort_local(@builtin(global_invocation_id) global_id: vec3<u32>,
                     var a = local_morton[tid];
                     var b = local_morton[partner];
 
-                    let should_swap = select(a.key < b.key, a.key > b.key, ascending);
+                    let should_swap = select((a.key < b.key), (a.key > b.key), ascending);
                     if should_swap {
                         local_morton[tid] = b;
                         local_morton[partner] = a;
@@ -297,7 +297,7 @@ fn bitonic_merge_global(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let a = morton_entries[gid];
     let b = morton_entries[partner];
 
-    let should_swap = select(a.key < b.key, a.key > b.key, ascending);
+    let should_swap = select((a.key < b.key), (a.key > b.key), ascending);
     if should_swap {
         morton_entries[gid] = b;
         morton_entries[partner] = a;
@@ -685,7 +685,7 @@ fn tree_collisions(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     // Check collisions within sliding window (spatial locality from Morton sort)
     // Particles with nearby sorted indices have similar Morton codes = nearby in space
-    let start = select(0u, sorted_idx - COLLISION_WINDOW_SIZE, sorted_idx > COLLISION_WINDOW_SIZE);
+    let start = select(0u, sorted_idx - COLLISION_WINDOW_SIZE, (sorted_idx > COLLISION_WINDOW_SIZE));
     let end = min(sorted_idx + COLLISION_WINDOW_SIZE + 1u, params.num_particles);
 
     for (var k = start; k < end; k = k + 1u) {
