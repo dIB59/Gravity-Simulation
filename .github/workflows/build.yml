@@ -102,7 +102,9 @@ jobs:
   # which triggers the homelab CI to terraform apply → K8s rolling restart.
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    # Deploy on both main and wasm-target while the WASM port is being
+    # iterated. Drop wasm-target once the branch merges to main.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/wasm-target'
     runs-on: ubuntu-latest
 
     steps:
